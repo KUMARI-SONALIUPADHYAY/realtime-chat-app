@@ -1,79 +1,115 @@
 const socket = io("http://localhost:3000");
 
-/* STEP 1 — Ask username when user opens chat */
+const messages = document.getElementById("messages");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+const typingDiv = document.getElementById("typing");
+const usersList = document.getElementById("usersList");
+const onlineCount = document.getElementById("onlineCount");
+const msgSound = document.getElementById("msgSound");
+
 const username = prompt("Enter your name");
 
-/* STEP 2 — Send message */
+socket.emit("join", username);
+
+sendBtn.addEventListener("click", sendMessage);
+
+messageInput.addEventListener("keypress",(e)=>{
+    if(e.key === "Enter"){
+        sendMessage();
+    }
+});
+
+messageInput.addEventListener("input",()=>{
+    socket.emit("typing", username);
+});
+
 function sendMessage(){
 
-const input = document.getElementById("messageInput");
+    const message = messageInput.value;
 
-input.addEventListener("keypress", ()=>{
-socket.emit("typing", username);
-});
+    if(message.trim()==="") return;
 
-const message = input.value;
+    const data = {
+        user: username,
+        message: message,
+        time: new Date().toLocaleTimeString()
+    };
 
-const data = {
-user: username,
-message: message,
-time: new Date().toLocaleTimeString()
-};
+    socket.emit("sendMessage", data);
 
-socket.emit("sendMessage", data);
-
-input.value = "";
-
+    messageInput.value="";
 }
 
-socket.on("typing",(name)=>{
-document.getElementById("typing").innerText = name + " is typing...";
+socket.on("receiveMessage",(data)=>{
 
-setTimeout(()=>{
-document.getElementById("typing").innerText = "";
-},2000);
-});
+    msgSound.play();
 
-/* STEP 3 — Receive message */
-socket.on("receiveMessage", (data) => {
+    const div = document.createElement("div");
+    div.classList.add("message");
 
-const messages = document.getElementById("messages");
+    const avatar = document.createElement("div");
+    avatar.classList.add("avatar");
+    avatar.innerText = data.user.charAt(0).toUpperCase();
 
-const div = document.createElement("div");
+    const bubble = document.createElement("div");
+    bubble.classList.add("bubble");
 
-/* create avatar */
-const avatar = document.createElement("div");
-avatar.innerText = data.user.charAt(0).toUpperCase();
-avatar.classList.add("avatar");
+    bubble.innerHTML = `
+        <div class="name">${data.user}</div>
+        <div>${data.message}</div>
+        <div class="time">${data.time}</div>
+    `;
 
-/* message bubble */
-const bubble = document.createElement("div");
-bubble.classList.add("bubble");
+    if(data.user === username){
+        div.classList.add("own");
+    }
 
-bubble.innerHTML = `
-<div class="name">${data.user}</div>
-<div>${data.message}</div>
-<div class="time">${data.time}</div>
-`;
+    div.appendChild(avatar);
+    div.appendChild(bubble);
 
-div.classList.add("message-row");
+    messages.appendChild(div);
 
-/* align messages */
-if(data.user === username){
-div.classList.add("own");
-}
-
-div.appendChild(avatar);
-div.appendChild(bubble);
-
-messages.appendChild(div);
-
-messages.scrollTop = messages.scrollHeight;
+    messages.scrollTo({
+        top: messages.scrollHeight,
+        behavior: "smooth"
+    });
 
 });
 
-/* Auto scroll */
-messages.scrollTop = messages.scrollHeight;
-socket.on("onlineUsers", (count) => {
-    document.getElementById("users").innerText = count;
+socket.on("typing",(user)=>{
+
+    typingDiv.innerText = user + " is typing...";
+
+    setTimeout(()=>{
+        typingDiv.innerText="";
+    },2000);
+
+});
+
+socket.on("systemMessage",(msg)=>{
+
+    const div = document.createElement("div");
+    div.classList.add("system");
+    div.innerText = msg;
+
+    messages.appendChild(div);
+
+});
+
+socket.on("onlineUsers",(users)=>{
+
+    onlineCount.innerText = users.length;
+
+    usersList.innerHTML="";
+
+    users.forEach(user=>{
+
+        const li = document.createElement("li");
+        li.innerText = user;
+
+        usersList.appendChild(li);
+
+    });
+
 });
