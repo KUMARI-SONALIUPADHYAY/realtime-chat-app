@@ -1,79 +1,89 @@
+// server.js
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const path = require("path");
 
-const Message = require("./models/Message");
+// Message model (inline simple schema so you can copy/paste easily)
+const messageSchema = new mongoose.Schema({
+  user: String,
+  text: String,
+  time: String,
+}, { timestamps: true });
+
+const Message = mongoose.models.Message || mongoose.model("Message", messageSchema);
 
 const app = express();
+
+// Serve client static files from /client folder
+app.use(express.static(path.join(__dirname, "client")));
+
+// Always send chat.html for root (for SPA)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "chat.html"));
+});
+
 const server = http.createServer(app);
 
-app.use(express.static(path.join(__dirname, "../client")));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/chat.html"));
-});
-
+// Configure Socket.IO with permissive CORS (adjust in prod if needed)
 const io = new Server(server, {
   cors: {
-    origin: "*"
-  }
+    origin: true,
+    methods: ["GET", "POST"]
+  },
 });
 
-mongoose.connect(process.env.MONGO_URI)
-.then(()=> console.log("MongoDB connected"))
-.catch(err => console.log(err));
+// MongoDB connection — read from env first (Render sets this via environment variables)
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/realtimechat";
 
-let users = {};
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(()=> console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB connection error:", err));
 
-io.on("connection",(socket)=>{
+let users = {}; // socket.id -> username
 
-    console.log("User connected");
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
 
-    socket.on("join",(username)=>{
+  // send last 50 messages on new connection (optional)
+  Message.find().sort({ createdAt: 1 }).limit(50).exec()
+    .then(messages => socket.emit("loadMessages", messages))
+    .catch(err => console.error(err));
 
-        users[socket.id] = username;
+  socket.on("join", (username) => {
+    users[socket.id] = username || "Anonymous";
+    io.emit("onlineUsers", Object.values(users));
+    socket.broadcast.emit("systemMessage", `${users[socket.id]} joined the chat`);
+    console.log(`${users[socket.id]} joined`);
+  });
 
-        io.emit("onlineUsers", Object.values(users));
+  socket.on("sendMessage", async (data) => {
+    // data should be { user, text, time }
+    try {
+      const msg = new Message(data);
+      await msg.save();
+    } catch(err) {
+      console.error("Error saving message:", err);
+    }
+    io.emit("receiveMessage", data);
+  });
 
-        socket.broadcast.emit("systemMessage", username + " joined the chat");
+  socket.on("typing", (username) => {
+    socket.broadcast.emit("typing", username);
+  });
 
-    });
-
-    socket.on("sendMessage", async(data)=>{
-
-        const msg = new Message(data);
-        await msg.save();
-
-        io.emit("receiveMessage", data);
-
-    });
-
-    socket.on("typing",(username)=>{
-        socket.broadcast.emit("typing", username);
-    });
-
-    socket.on("disconnect",()=>{
-
-        const username = users[socket.id];
-
-        delete users[socket.id];
-
-        io.emit("onlineUsers", Object.values(users));
-
-        if(username){
-            io.emit("systemMessage", username + " left the chat");
-        }
-
-        console.log("User disconnected");
-
-    });
-
+  socket.on("disconnect", () => {
+    const username = users[socket.id];
+    if (username) {
+      delete users[socket.id];
+      io.emit("onlineUsers", Object.values(users));
+      io.emit("systemMessage", `${username} left the chat`);
+      console.log(`${username} disconnected`);
+    }
+  });
 });
 
+// Use port from environment (Render) or fallback 3000 for local dev
 const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

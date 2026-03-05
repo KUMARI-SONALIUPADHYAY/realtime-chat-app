@@ -1,41 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-<title>Realtime Chat</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>Realtime Chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* minimal styling — keep your original CSS if you want */
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#0f1720; color:#fff;}
+    .wrap { display:flex; height:100vh; }
+    .left { width:240px; background:#0b1720; padding:30px; box-sizing:border-box; }
+    .main { flex:1; display:flex; flex-direction:column; align-items:center; }
+    .header { width:100%; background:#5a44ff; padding:14px; text-align:center; }
+    .messages { width:640px; max-width:80%; flex:1; background:#25313a; margin:20px 0; border-radius:6px; padding:20px; overflow:auto; }
+    .system { text-align:center; color:#bfc7cc; margin:12px 0; }
+    .bubble { display:inline-block; padding:10px 14px; border-radius:12px; margin:8px 0; background:#6d5bff; color:#fff;}
+    .bubble.left { background:#3b4650; }
+    .footer { width:100%; padding:20px; display:flex; justify-content:center; gap:8px; }
+    input[type="text"] { width:60%; padding:12px; border-radius:6px; border:0; outline:none; }
+    button { padding:10px 16px; background:#6d5bff; color:#fff; border:0; border-radius:6px; cursor:pointer;}
+    .onlineList { list-style:none; padding:0; color:#ddd; }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div class="left">
+      <h2>Online Users</h2>
+      <ul id="users" class="onlineList"></ul>
+    </div>
 
-<div class="container">
+    <div class="main">
+      <div class="header">
+        <h2>Realtime Chat</h2>
+        <div id="count">Online Users: 0</div>
+      </div>
 
-<div class="users">
-<h3>Online Users</h3>
-<ul id="userList"></ul>
-</div>
+      <div id="messages" class="messages"></div>
 
-<div class="chat">
+      <div class="footer">
+        <input id="messageInput" placeholder="Type message" autocomplete="off" />
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
 
-<div class="header">
-Realtime Chat
-<span id="onlineCount">Online Users: 0</span>
-</div>
-
-<div id="messages"></div>
-
-<div id="typing"></div>
-
-<div class="input">
-<input id="messageInput" placeholder="Type message"/>
-<button onclick="sendMessage()">Send</button>
-</div>
-
-</div>
-
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="chat.js"></script>
-
+  <!-- socket.io client (served by server) -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/chat.js"></script>
 </body>
 </html>
