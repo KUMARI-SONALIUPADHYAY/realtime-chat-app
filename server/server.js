@@ -24,8 +24,8 @@ const io = new Server(server, {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/realtimechat")
-.then(() => console.log("MongoDB connected"))
+mongoose.connect(process.env.MONGO_URI)
+.then(()=> console.log("MongoDB connected"))
 .catch(err => console.log(err));
 
 let users = {};
