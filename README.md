@@ -74,4 +74,4 @@ http://localhost:3000
 Kumari Sonali
 
 ## Screenshot
-![Realtime Chat UI](chat-real.png)
+![Realtime Chat UI](chat-real.jpeg)

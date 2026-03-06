@@ -1,50 +1,177 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>Realtime Chat</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    /* minimal styling — keep your original CSS if you want */
-    body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#0f1720; color:#fff;}
-    .wrap { display:flex; height:100vh; }
-    .left { width:240px; background:#0b1720; padding:30px; box-sizing:border-box; }
-    .main { flex:1; display:flex; flex-direction:column; align-items:center; }
-    .header { width:100%; background:#5a44ff; padding:14px; text-align:center; }
-    .messages { width:640px; max-width:80%; flex:1; background:#25313a; margin:20px 0; border-radius:6px; padding:20px; overflow:auto; }
-    .system { text-align:center; color:#bfc7cc; margin:12px 0; }
-    .bubble { display:inline-block; padding:10px 14px; border-radius:12px; margin:8px 0; background:#6d5bff; color:#fff;}
-    .bubble.left { background:#3b4650; }
-    .footer { width:100%; padding:20px; display:flex; justify-content:center; gap:8px; }
-    input[type="text"] { width:60%; padding:12px; border-radius:6px; border:0; outline:none; }
-    button { padding:10px 16px; background:#6d5bff; color:#fff; border:0; border-radius:6px; cursor:pointer;}
-    .onlineList { list-style:none; padding:0; color:#ddd; }
-  </style>
+<meta charset="UTF-8">
+<title>Realtime Chat</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, sans-serif;
+}
+
+body{
+
+/* CHANGE BACKGROUND IMAGE HERE */
+background-image:url("https://wallpaperaccess.com/full/619675.jpg");
+
+background-size:cover;
+background-position:center;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.container{
+width:1000px;
+height:600px;
+display:flex;
+background:rgba(15,23,42,0.95);
+border-radius:10px;
+overflow:hidden;
+box-shadow:0 10px 40px rgba(0,0,0,0.4);
+}
+
+.sidebar{
+width:220px;
+background:#020617;
+padding:20px;
+}
+
+.sidebar h2{
+margin-bottom:20px;
+color:#a5b4fc;
+}
+
+.sidebar ul{
+list-style:none;
+}
+
+.sidebar li{
+padding:6px;
+color:#cbd5f5;
+}
+
+.chat-section{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+.header{
+background:linear-gradient(90deg,#7c3aed,#4f46e5);
+padding:15px;
+text-align:center;
+}
+
+.header h2{
+font-weight:500;
+}
+
+#userCount{
+font-size:13px;
+margin-top:4px;
+}
+
+.chat-box{
+flex:1;
+padding:20px;
+overflow-y:auto;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.message{
+padding:10px 14px;
+border-radius:10px;
+max-width:60%;
+font-size:14px;
+}
+
+.mine{
+background:#6366f1;
+align-self:flex-end;
+}
+
+.other{
+background:#334155;
+align-self:flex-start;
+}
+
+.message b{
+font-size:13px;
+}
+
+.message small{
+font-size:10px;
+opacity:.7;
+}
+
+.input-area{
+display:flex;
+padding:15px;
+background:#020617;
+}
+
+#messageInput{
+flex:1;
+padding:10px;
+border-radius:6px;
+border:none;
+outline:none;
+}
+
+button{
+margin-left:10px;
+padding:10px 18px;
+border:none;
+background:#6366f1;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#4f46e5;
+}
+
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="left">
-      <h2>Online Users</h2>
-      <ul id="users" class="onlineList"></ul>
-    </div>
 
-    <div class="main">
-      <div class="header">
-        <h2>Realtime Chat</h2>
-        <div id="count">Online Users: 0</div>
-      </div>
+<div class="container">
 
-      <div id="messages" class="messages"></div>
+<div class="sidebar">
+<h2>Online Users</h2>
+<ul id="users"></ul>
+</div>
 
-      <div class="footer">
-        <input id="messageInput" placeholder="Type message" autocomplete="off" />
-        <button id="sendBtn">Send</button>
-      </div>
-    </div>
-  </div>
+<div class="chat-section">
 
-  <!-- socket.io client (served by server) -->
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/chat.js"></script>
+<div class="header">
+<h2>Realtime Chat</h2>
+<div id="userCount">Online Users: 0</div>
+</div>
+
+<div id="chatBox" class="chat-box"></div>
+
+<div class="input-area">
+<input id="messageInput" placeholder="Type message">
+<button onclick="sendMessage()">Send</button>
+</div>
+
+</div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="chat.js"></script>
+
 </body>
 </html>

@@ -17,11 +17,11 @@ const Message = mongoose.models.Message || mongoose.model("Message", messageSche
 const app = express();
 
 // Serve client static files from /client folder
-app.use(express.static(path.join(__dirname, "client")));
+app.use(express.static(path.join(__dirname, "../client")));
 
 // Always send chat.html for root (for SPA)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "client", "chat.html"));
+ res.sendFile(path.join(__dirname, "../client", "chat.html"));
 });
 
 const server = http.createServer(app);
@@ -37,9 +37,15 @@ const io = new Server(server, {
 // MongoDB connection — read from env first (Render sets this via environment variables)
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/realtimechat";
 
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(()=> console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB connection error:", err));
+
+mongoose.connect("mongodb+srv://upadhyaysonali2005_db_user:d6wwJx4RgjPSetEY@cluster0.wpsgc22.mongodb.net/realtimechat")
+.then(() => {
+  console.log("MongoDB connected");
+})
+.catch((err) => {
+  console.log("MongoDB connection error:", err);
+});
+
 
 let users = {}; // socket.id -> username
 
